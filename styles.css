@@ -46,3 +46,142 @@ table {
     border-style: dashed double none ;
      height: 20px;
   } */
+/* หน้า links.html (Link-in-bio) */
+.links-page {
+  margin: 0;
+  background: #fff5ec;
+  color: #222;
+  font-family: "Sarabun", "Tahoma", sans-serif;
+}
+
+.links {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+.links-header {
+  text-align: center;
+}
+
+.links-header h1 {
+  margin: 12px 0 4px;
+  font-size: 1.5rem;
+}
+
+.links-header p {
+  margin: 0;
+  color: #666;
+}
+
+.links-avatar {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #ee4d2d;
+}
+
+.links-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 24px 0 0;
+}
+
+.links-tabs[hidden] {
+  display: none;
+}
+
+.links-tabs button {
+  border: 1px solid #ee4d2d;
+  background: #fff;
+  color: #ee4d2d;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.links-tabs button.active {
+  background: #ee4d2d;
+  color: #fff;
+}
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+}
+
+.product-card .product-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.product-image.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fde3d3;
+  color: #b8401f;
+  font-weight: bold;
+}
+
+.product-category {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.product-card h2 {
+  margin: 2px 0 4px;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  flex-grow: 1;
+}
+
+.product-price {
+  margin: 0 0 8px;
+  font-weight: bold;
+  color: #ee4d2d;
+}
+
+.product-button {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  background: #ee4d2d;
+}
+
+.product-button.tiktok {
+  background: #111;
+}
+
+.links-note {
+  margin-top: 24px;
+  font-size: 0.8rem;
+  color: #777;
+  text-align: center;
+}
+
+.links-note a {
+  color: #ee4d2d;
+}

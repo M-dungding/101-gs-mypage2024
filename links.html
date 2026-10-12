@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mint's Picks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="links-page">
+    <main class="links">
+        <header class="links-header">
+            <img src="ningning.jpg" alt="รูปโปรไฟล์" class="links-avatar">
+            <h1>Mint's Picks</h1>
+            <p>ของดีราคาคุ้มที่ใช้จริง อัปเดตทุกสัปดาห์</p>
+        </header>
+
+        <nav class="links-tabs" id="tabs"></nav>
+        <section class="links-grid" id="products"></section>
+
+        <p class="links-note">
+            ลิงก์ในหน้านี้เป็นลิงก์ affiliate เราจะได้ค่าคอมมิชชั่นเล็กน้อยเมื่อมีการสั่งซื้อ
+            โดยผู้ซื้อจ่ายราคาเท่าเดิม
+        </p>
+        <p class="links-note"><a href="index.html">กลับหน้าแรก</a></p>
+    </main>
+
+    <script>
+        // แก้รายการสินค้าตรงนี้: วางลิงก์ affiliate จากแดชบอร์ด Shopee ลงใน url
+        // image ใส่ลิงก์รูปสินค้า (คลิกขวาที่รูปในหน้าร้าน > คัดลอกที่อยู่รูปภาพ) หรือชื่อไฟล์รูปใน repo
+        // platform ใช้ "shopee" ตอนนี้ และเพิ่ม "tiktok" ได้ภายหลัง แท็บจะขึ้นเองอัตโนมัติ
+        const products = [
+            {
+                name: "ที่หั่นผักอเนกประสงค์",
+                price: 89,
+                category: "ของใช้ในบ้าน",
+                image: "",
+                url: "https://s.shopee.co.th/XXXXXXXX",
+                platform: "shopee"
+            },
+            {
+                name: "คลิปปิดถุงขนม ชุด 10 ชิ้น",
+                price: 59,
+                category: "ของใช้ในบ้าน",
+                image: "",
+                url: "https://s.shopee.co.th/XXXXXXXX",
+                platform: "shopee"
+            },
+            {
+                name: "ลิปทินท์เนื้อแมตต์",
+                price: 129,
+                category: "ความงาม",
+                image: "",
+                url: "https://s.shopee.co.th/XXXXXXXX",
+                platform: "shopee"
+            },
+            {
+                name: "ชั้นวางของบนโต๊ะ",
+                price: 199,
+                category: "จัดระเบียบ",
+                image: "",
+                url: "https://s.shopee.co.th/XXXXXXXX",
+                platform: "shopee"
+            }
+        ];
+
+        const platformLabels = { shopee: "Shopee", tiktok: "TikTok Shop" };
+        const tabs = document.getElementById("tabs");
+        const grid = document.getElementById("products");
+
+        function render(platform) {
+            grid.innerHTML = "";
+            products
+                .filter(p => p.platform === platform)
+                .forEach(p => {
+                    const card = document.createElement("a");
+                    card.className = "product-card";
+                    card.href = p.url;
+                    card.target = "_blank";
+                    card.rel = "noopener sponsored";
+
+                    // ไม่มีรูป หรือโหลดรูปไม่ได้ จะแสดงกล่องสีพร้อมชื่อหมวดแทน
+                    const placeholder = document.createElement("div");
+                    placeholder.className = "product-image placeholder";
+                    placeholder.textContent = p.category;
+                    let img = placeholder;
+                    if (p.image) {
+                        img = document.createElement("img");
+                        img.className = "product-image";
+                        img.src = p.image;
+                        img.alt = p.name;
+                        img.loading = "lazy";
+                        img.addEventListener("error", () => img.replaceWith(placeholder));
+                    }
+
+                    const tag = document.createElement("span");
+                    tag.className = "product-category";
+                    tag.textContent = p.category;
+
+                    const name = document.createElement("h2");
+                    name.textContent = p.name;
+
+                    const price = document.createElement("p");
+                    price.className = "product-price";
+                    price.textContent = `฿${p.price.toLocaleString("th-TH")}`;
+
+                    const button = document.createElement("span");
+                    button.className = `product-button ${p.platform}`;
+                    button.textContent = `ซื้อที่ ${platformLabels[p.platform]}`;
+
+                    card.append(img, tag, name, price, button);
+                    grid.append(card);
+                });
+            tabs.querySelectorAll("button").forEach(b => {
+                b.classList.toggle("active", b.dataset.platform === platform);
+            });
+        }
+
+        const platforms = [...new Set(products.map(p => p.platform))];
+        platforms.forEach(platform => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.dataset.platform = platform;
+            b.textContent = platformLabels[platform] || platform;
+            b.addEventListener("click", () => render(platform));
+            tabs.append(b);
+        });
+        // ซ่อนแถบแท็บเมื่อมีแพลตฟอร์มเดียว
+        tabs.hidden = platforms.length < 2;
+        render(platforms[0]);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+{
+  "output": "clip_ที่หั่นผัก.mp4",
+  "hook": "หั่นหอมทีไร\nน้ำตาไหลทุกที?",
+  "price": "เพียง 89.-",
+  "cta": "กดตะกร้าด้านล่างได้เลย",
+  "disclosure": "ลิงก์ในตะกร้าเป็นลิงก์ affiliate",
+  "music": "",
+  "slides": [
+    { "image": "images/product1.jpg", "seconds": 3.5 },
+    { "image": "images/product2.jpg", "text": "หั่นเสร็จใน 5 วินาที", "seconds": 3 },
+    { "image": "images/product3.jpg", "text": "ล้างง่าย ใส่ตู้เย็นได้", "seconds": 3 },
+    { "image": "images/product4.jpg", "text": "รีวิว 4.9 ดาว", "seconds": 3.5 }
+  ]
+}
