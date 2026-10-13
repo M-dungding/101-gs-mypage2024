@@ -4,12 +4,17 @@
 ใช้งาน:
     python3 make_clip.py clip.json          # สร้างคลิปตามไฟล์ตั้งค่า
     python3 make_clip.py --demo out_dir     # สร้างคลิปตัวอย่างจากรูปจำลอง
+    python3 make_clip.py --from-link URL    # หาลิงก์รูปสินค้าจากลิงก์ affiliate/หน้าสินค้า
+
+ช่อง "image" ใส่ได้ทั้งไฟล์ในเครื่องและลิงก์รูป (https://...) ลิงก์รูปจะถูกดาวน์โหลดให้อัตโนมัติ
 
 ต้องมี: Python 3 + Pillow และ ffmpeg
 """
 import argparse
+import html
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -167,6 +172,49 @@ def compose_slide(image_path, top_text, font, price=None, cta=None, disclosure=N
     return frame.convert("RGB")
 
 
+BROWSER_UA = ("Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36")
+
+
+def curl(url, out=None):
+    """ดาวน์โหลดด้วย curl (ใช้ proxy/ใบรับรองของเครื่องได้เลย) คืนค่า bytes ถ้าไม่ระบุ out"""
+    cmd = ["curl", "-sSL", "--fail", "--max-time", "30", "-A", BROWSER_UA, url]
+    if out:
+        cmd += ["-o", out]
+    result = subprocess.run(cmd, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ดาวน์โหลดไม่สำเร็จ: {url}\n{result.stderr.decode(errors='replace').strip()}")
+    return result.stdout
+
+
+def find_og_image(link):
+    """หาลิงก์รูปสินค้าจาก meta og:image ของหน้าสินค้า (ตามลิงก์ affiliate ที่ redirect ไปหน้าสินค้า)"""
+    page = curl(link).decode("utf-8", errors="replace")
+    found = []
+    for tag in re.findall(r"<meta[^>]+>", page, flags=re.I):
+        if re.search(r"(property|name)=[\"']og:image(:url)?[\"']", tag, flags=re.I):
+            m = re.search(r"content=[\"']([^\"']+)[\"']", tag, flags=re.I)
+            if m and m.group(1) not in found:
+                found.append(html.unescape(m.group(1)))
+    if not found:
+        raise RuntimeError(f"ไม่พบรูปในหน้า {link} (Shopee อาจบล็อกการดึงหน้าเว็บ) ให้ใส่ลิงก์รูปเองแทน")
+    return found
+
+
+def local_image(src, base_dir, work):
+    """คืน path รูปในเครื่อง ถ้าเป็นลิงก์จะดาวน์โหลดลงโฟลเดอร์ชั่วคราวก่อน แล้วเช็กว่าเปิดเป็นรูปได้"""
+    if not src.startswith(("http://", "https://")):
+        return src if os.path.isabs(src) else os.path.join(base_dir, src)
+    dest = os.path.join(work, f"img_{abs(hash(src))}")
+    if not os.path.exists(dest):
+        curl(src, dest)
+        try:
+            Image.open(dest).verify()
+        except Exception:
+            raise RuntimeError(f"ไฟล์จากลิงก์นี้ไม่ใช่รูป: {src}")
+    return dest
+
+
 def run(cmd):
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -191,7 +239,7 @@ def build(config, base_dir):
         for i, slide in enumerate(slides):
             first, last = i == 0, i == len(slides) - 1
             img = compose_slide(
-                path(slide["image"]),
+                local_image(slide["image"], base_dir, work),
                 config["hook"] if first and config.get("hook") else slide.get("text", ""),
                 font,
                 price=config.get("price") if (first or last) else None,
@@ -269,13 +317,23 @@ def main():
     parser = argparse.ArgumentParser(description="สร้างคลิป Shopee Video 9:16 จากรูปสินค้า")
     parser.add_argument("config", nargs="?", help="ไฟล์ตั้งค่า .json")
     parser.add_argument("--demo", metavar="OUT_DIR", help="สร้างคลิปตัวอย่างลงโฟลเดอร์นี้")
+    parser.add_argument("--from-link", metavar="URL", help="หาลิงก์รูปสินค้าจากลิงก์ affiliate")
     args = parser.parse_args()
+    try:
+        if args.from_link:
+            print("\n".join(find_og_image(args.from_link)))
+            return
+    except RuntimeError as e:
+        sys.exit(str(e))
     if args.demo:
         make_demo(args.demo)
     elif args.config:
         with open(args.config, encoding="utf-8") as f:
             config = json.load(f)
-        build(config, os.path.dirname(os.path.abspath(args.config)))
+        try:
+            build(config, os.path.dirname(os.path.abspath(args.config)))
+        except RuntimeError as e:
+            sys.exit(str(e))
     else:
         parser.print_help()
 
