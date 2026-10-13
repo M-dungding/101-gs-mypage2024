@@ -5,6 +5,7 @@
     python3 make_clip.py clip.json          # สร้างคลิปตามไฟล์ตั้งค่า
     python3 make_clip.py --demo out_dir     # สร้างคลิปตัวอย่างจากรูปจำลอง
     python3 make_clip.py --from-link URL    # หาลิงก์รูปสินค้าจากลิงก์ affiliate/หน้าสินค้า
+    python3 make_clip.py --queue-images P001  # แสดงรูปของสินค้า P001 ในโฟลเดอร์ queue/
 
 ช่อง "image" ใส่ได้ทั้งไฟล์ในเครื่องและลิงก์รูป (https://...) ลิงก์รูปจะถูกดาวน์โหลดให้อัตโนมัติ
 
@@ -201,6 +202,25 @@ def find_og_image(link):
     return found
 
 
+QUEUE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "queue")
+IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp")
+
+
+def queue_images(code):
+    """รูปของสินค้าในโฟลเดอร์ queue/: ไฟล์ชื่อ CODE-*.jpg หรือรูปในโฟลเดอร์ย่อย CODE/ เรียงตามชื่อ"""
+    found = []
+    if os.path.isdir(QUEUE_DIR):
+        prefix = f"{code}-".lower()
+        for name in os.listdir(QUEUE_DIR):
+            if name.lower().startswith(prefix) and name.lower().endswith(IMAGE_EXTS):
+                found.append(os.path.join(QUEUE_DIR, name))
+        for name in os.listdir(QUEUE_DIR):
+            sub = os.path.join(QUEUE_DIR, name)
+            if name.lower() == code.lower() and os.path.isdir(sub):
+                found += [os.path.join(sub, n) for n in os.listdir(sub) if n.lower().endswith(IMAGE_EXTS)]
+    return sorted(found)
+
+
 def local_image(src, base_dir, work):
     """คืน path รูปในเครื่อง ถ้าเป็นลิงก์จะดาวน์โหลดลงโฟลเดอร์ชั่วคราวก่อน แล้วเช็กว่าเปิดเป็นรูปได้"""
     if not src.startswith(("http://", "https://")):
@@ -318,7 +338,14 @@ def main():
     parser.add_argument("config", nargs="?", help="ไฟล์ตั้งค่า .json")
     parser.add_argument("--demo", metavar="OUT_DIR", help="สร้างคลิปตัวอย่างลงโฟลเดอร์นี้")
     parser.add_argument("--from-link", metavar="URL", help="หาลิงก์รูปสินค้าจากลิงก์ affiliate")
+    parser.add_argument("--queue-images", metavar="CODE", help="แสดงรูปของสินค้ารหัสนี้ในโฟลเดอร์ queue/")
     args = parser.parse_args()
+    if args.queue_images:
+        images = queue_images(args.queue_images)
+        if not images:
+            sys.exit(f"ไม่พบรูปของ {args.queue_images} ใน {QUEUE_DIR} (ตั้งชื่อไฟล์เช่น {args.queue_images}-1.jpg)")
+        print("\n".join(images))
+        return
     try:
         if args.from_link:
             print("\n".join(find_og_image(args.from_link)))
